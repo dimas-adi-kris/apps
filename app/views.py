@@ -7,7 +7,7 @@ from datetime import datetime
 from werkzeug.utils import secure_filename
 from PIL import Image
 from flask_mysqldb import MySQL
-# from app.static.Deployment import predict_bounding_box
+from app.static.Deployment import predict_bounding_box
 
 
 
@@ -55,23 +55,20 @@ def upload_image():
 
 				print("image saved with name", session.get('image_name'))
 				
-				# simpen ke database
-				file = session.get('image_name')
-				print('cek1')
-				status_detect = "0"
-				print('cek1')
-				cur = mysql.connection.cursor()
-				print('cek1')
-				cur.execute("INSERT INTO tb_arrdetect (file,status_detect) VALUES (%s,%s)",(file,status_detect))
-				print('cek1')
-				mysql.connection.commit()
-				print('cek1')
+
 
 				saved_img = app.config["IMAGE_UPLOADS"] + "/" + session.get('image_name')
-				# str_saved_img = str(saved_img)
+				str_saved_img = str(saved_img)
 
-				# predict_bounding_box.predict(str_saved_img)
+				predict_bounding_box.predict(str_saved_img)
 				# print(str_saved_img)
+
+				# simpen ke database
+				file = session.get('image_name')
+				status_detect = "0"
+				cur = mysql.connection.cursor()
+				cur.execute("INSERT INTO tb_arrdetect (file,status_detect) VALUES (%s,%s)",(file,status_detect))
+				mysql.connection.commit()
 
 				return redirect(request.url)
 			
