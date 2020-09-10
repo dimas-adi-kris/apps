@@ -132,14 +132,15 @@ def simpan():
 def update():
 	id_data = request.form['id']
 	nama = request.form['nama']
+	status_detect = request.form['status_detect']
 	cur = mysql.connection.cursor()
-	cur.execute("UPDATE tb_arrdetect SET file=%s WHERE id=%s", (nama,id_data,))
+	cur.execute("UPDATE tb_arrdetect SET file=%s,status_detect=%s WHERE id_detect=%s", (nama,status_detect,id_data))
 	mysql.connection.commit()
 	return redirect(url_for('table'))
 
-@app.route('/hapus/<string:id_data>', methods=["GET"])
-def hapus(id_data):
+@app.route('/hapus/<string:id>', methods=["GET"])
+def hapus(id):
     cur = mysql.connection.cursor()
-    cur.execute("DELETE FROM tb_arrdetect WHERE id=%s", (id_data,))
+    cur.execute("DELETE FROM tb_arrdetect WHERE id_detect=%s", (id,))
     mysql.connection.commit()
     return redirect(url_for('table'))

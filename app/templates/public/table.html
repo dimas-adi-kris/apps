@@ -5,70 +5,15 @@
 {% block main %}
 
 <div class="container">
-    <div class="row">
-        <div class="col">
-
-            <h1>App</h1>
-            <hr>
-            <div class="card bg-primary text-white shadow m-3">
-                <a href="/upload-image">
-                    <div class="card-body text-white">
-                        IMAGE PROCESSING
-                        <div class="text-white-50 small">--></div>
-                    </div>
-                </a>
-            </div>
-            <div class="card bg-secondary text-white shadow m-3">
-                <a href="/arrythmia">
-                    <div class="card-body text-white">
-                        ARRYTHMIA
-                        <div class="text-white-50 small">--></div>
-                    </div>
-                </a>
-            </div>
-
-
-        </div>
-    </div>
-
-</div>
-<div class="container">
     <div class="starter-template">
         <h1>Tampilkan Data</h1>
+        <button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#myModal">Tambah Data</button>
         <table class="table table-striped">
             <thead>
                 <tr>
                     <td>No</td>
-                    <td>Nama</td>
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in computers %}
-                <tr>
-                    <td>{{ row.0 }}</td>
-                    <td>{{ row.1 }}</td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="2">Unbelievable. No entries here so far</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
-
-<div class="container">
-    <div class="starter-template">
-        <h1>Tampilkan Data</h1>
-        <button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#myModal">Tambah
-            Data</button>
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <td>No</td>
-                    <td>Judul</td>
-                    <td>isi</td>
+                    <td>Nama file</td>
+                    <td>Status_detect</td>
                     <td>Aksi</td>
                 </tr>
             </thead>
@@ -76,10 +21,7 @@
 
                 {% for row in computers %}
                 <tr>
-                    {% if counter %}
-                    <td>{{ counter }}</td>
-                    {% set counter = counter + 1%}
-                    {% endif%}
+                    <td>{{ row.0 }}</td>
                     <td>{{ row.1 }}</td>
                     <td>{{ row.2 }}</td>
                     
@@ -105,6 +47,10 @@
                                         <label>Nama:</label>
                                         <input type="hidden" name="id" value="{{ row.0 }}">
                                         <input type="text" class="form-control" name="nama" value="{{ row.1 }}">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Status_detect:</label>                                        
+                                        <input type="text" class="form-control" name="status_detect" value="{{ row.2 }}">
                                     </div>
                                     <div class="form-group">
                                         <button class="btn btn-warning" type="submit">Update</button>
