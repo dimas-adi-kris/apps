@@ -6,36 +6,21 @@ from flask import render_template, request, redirect, jsonify, make_response, se
 from datetime import datetime
 from werkzeug.utils import secure_filename
 from PIL import Image
+from flask_mysqldb import MySQL
 # from app.static.Deployment import predict_bounding_box
-# KOMEN DIATAS PENYEBAB ERROR
+
 
 
 app.config["ALLOWED_IMAGE_EXTENSIONS"] = ["JPEG", "JPG", "PNG", "GIF"]
 app.config["MAX_IMAGE_FILESIZE"] = 50 * 1024 * 1024
 
-
 app.config["SECRET_KEY"] = 'qfLQFMLpUvwRmtBg'
-
-
-# users = {
-# 	"julian": {
-# 		"username": "julian",
-# 		"email": "julian@gmail.com",
-# 		"password": "Xcuy5679-",
-# 		"bio": "Some guy from the internet"
-# 	},
-# 	"clarissa": {
-# 		"username": "clarissa",
-# 		"email": "clarissa@icloud.com",
-# 		"password": "sweetpotato22",
-# 		"bio": "Sweet potato is life"
-# 	}
-# }
-
+mysql = MySQL(app)
 
 @app.route("/", methods=["GET", "POST"])
 @app.route('/index', methods=["GET", "POST"])
 def index():
+
 	return render_template("public/index.html")
 
 @app.route("/upload-image", methods=["GET", "POST"])
@@ -69,6 +54,18 @@ def upload_image():
 				image.save(os.path.join(app.config["IMAGE_UPLOADS"], session.get('image_name')))
 
 				print("image saved with name", session.get('image_name'))
+				
+				# simpen ke database
+				file = session.get('image_name')
+				print('cek1')
+				status_detect = "0"
+				print('cek1')
+				cur = mysql.connection.cursor()
+				print('cek1')
+				cur.execute("INSERT INTO tb_arrdetect (file,status_detect) VALUES (%s,%s)",(file,status_detect))
+				print('cek1')
+				mysql.connection.commit()
+				print('cek1')
 
 				saved_img = app.config["IMAGE_UPLOADS"] + "/" + session.get('image_name')
 				# str_saved_img = str(saved_img)
@@ -112,46 +109,37 @@ def allowed_image_filesize(filesize):
 		print(int(filesize))
 		return False
 
-# @app.route("/profile")
-# def profile():
+@app.route("/table")
+def table():
+	counter = 0
+	counter += 1
+	cur = mysql.connection.cursor()
+	cur.execute("SELECT * FROM tb_arrdetect")
+	rv = cur.fetchall()
+	cur.close()	
+	return render_template("public/table.html",computers=rv,counter=counter)
 
-# 	if not session.get("USERNAME") is None:
-# 		username = session.get("USERNAME")
-# 		user = users[username]
-# 		return render_template("public/profile.html", user=user)
-# 	else:
-# 		print("No username found in session")
-# 		return redirect(url_for("sign_in"))
+@app.route("/simpan",methods=["GET","POST"])
+def simpan():
+	file = request.form['file']
+	status_detect = request.form['status_detect']
+	cur = mysql.connection.cursor()
+	cur.execute("INSERT INTO tb_arrdetect (file,status_detect) VALUES (%s,%s)",(file,status_detect))
+	mysql.connection.commit()
+	return redirect(url_for('table'))
 
+@app.route('/update', methods=["POST"])
+def update():
+	id_data = request.form['id']
+	nama = request.form['nama']
+	cur = mysql.connection.cursor()
+	cur.execute("UPDATE tb_arrdetect SET file=%s WHERE id=%s", (nama,id_data,))
+	mysql.connection.commit()
+	return redirect(url_for('table'))
 
-# @app.route('/sign-in', methods = ['GET', 'POST'])
-# def sign_in():
-
-# 	if request.method == 'POST':
-# 		req = request.form
-
-# 		username = req.get("username")
-# 		password = req.get("password")
-
-# 		session.pop('image_name',None)
-# 		if not username in users:
-
-# 			print("username not found")
-# 			return redirect(request.url)
-# 		else:
-# 			user = users[username]
-
-# 		if not password == user["password"]:
-# 			print("incorrect password")
-# 			return redirect(request.url)
-# 		else:
-# 			session["USERNAME"] = user["username"]
-
-# 			print("session username set")
-# 			return redirect(url_for("profile"))
-# 	return render_template("public/sign_in.html")
-	
-# @app.route("/sign-out")
-# def sign_out():
-# 	session.pop("USERNAME", None)
-# 	return redirect(url_for('sign_in'))
+@app.route('/hapus/<string:id_data>', methods=["GET"])
+def hapus(id_data):
+    cur = mysql.connection.cursor()
+    cur.execute("DELETE FROM tb_arrdetect WHERE id=%s", (id_data,))
+    mysql.connection.commit()
+    return redirect(url_for('table'))
