@@ -137,7 +137,9 @@ def update():
 
 @app.route('/hapus/<string:id>', methods=["GET"])
 def hapus(id):
-    cur = mysql.connection.cursor()
-    cur.execute("DELETE FROM tb_arrdetect WHERE id_detect=%s", (id,))
-    mysql.connection.commit()
-    return redirect(url_for('table'))
+	cur = mysql.connection.cursor()
+	cur.execute("DELETE FROM tb_arrdetect WHERE id_detect=%s", (id,))
+	cur.execute("update tb_arrdetect set id_detect=id_detect-1 where id_detect > %s",(id,))
+	cur.execute("ALTER TABLE tb_arrdetect AUTO_INCREMENT=1;")
+	mysql.connection.commit()
+	return redirect(url_for('table'))
