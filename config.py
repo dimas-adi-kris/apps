@@ -9,7 +9,7 @@ class ProductionConfig(Config):
     DB_USERNAME = "admin"
     DB_PASSWORD = "example"
 
-    IMAGE_UPLOADS = "D:/Pakfir/ORI/app/static/Deployment/Predicting/"
+    IMAGE_UPLOADS = "C:/app/app/static/Deployment/Predicting/"
 
     SESSION_COOKIE_SECURE = False
 
