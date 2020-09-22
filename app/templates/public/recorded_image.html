@@ -1,0 +1,42 @@
+{% extends "public/templates/public_template.html" %}
+
+{% block title %}Main App{% endblock %}
+
+{% block main %}
+
+<div class="container">
+    <div class="starter-template">
+        <h1>Tampilkan Data</h1>
+        {% for row in computers %}
+        <div class="card" style="width: 18rem;">
+            <img src="{{ url_for('static', filename='Deployment/Predicting/'+row.1) }}" alt="{{row.1}}" width="50%">
+            <img class="card-img-top" src="" alt="Card image cap">
+            <div class="card-body">
+              <h5 class="card-title">Card title</h5>
+              <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+              <a href="#" class="btn btn-primary">Go somewhere</a>
+            </div>
+          </div>
+        {% else %}
+        <div class="card bg-primary text-white shadow">
+            <div class="card-body">
+              No Data Recorded
+              <div class="text-white-50 small">You can try to render something. Hopefully it will show here</div>
+            </div>
+          </div>
+        {% endfor %}
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block script %}
+
+<script>
+    function filesize(elem) {
+        document.cookie = `filesize=${elem.files[0].size}`
+    }
+</script>
+
+{% endblock %}

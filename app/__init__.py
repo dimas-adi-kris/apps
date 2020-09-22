@@ -10,6 +10,7 @@ app.config['MYSQL_DB'] = 'db_apps'
 
 
 from app import views
+from app import sublink
 
 if app.config["ENV"] == "production":
     app.config.from_object("config.ProductionConfig")

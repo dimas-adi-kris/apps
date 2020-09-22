@@ -11,6 +11,7 @@ from app.static.Deployment import predict_bounding_box
 
 
 
+
 app.config["ALLOWED_IMAGE_EXTENSIONS"] = ["JPEG", "JPG", "PNG", "GIF"]
 app.config["MAX_IMAGE_FILESIZE"] = 50 * 1024 * 1024
 
@@ -59,6 +60,7 @@ def upload_image():
 
 				saved_img = app.config["IMAGE_UPLOADS"] + "/" + session.get('image_name')
 				str_saved_img = str(saved_img)
+				print(str_saved_img)
 
 				predict_bounding_box.predict(str_saved_img)
 				# print(str_saved_img)
@@ -108,13 +110,19 @@ def allowed_image_filesize(filesize):
 
 @app.route("/table")
 def table():
-	counter = 0
-	counter += 1
 	cur = mysql.connection.cursor()
 	cur.execute("SELECT * FROM tb_arrdetect")
 	rv = cur.fetchall()
 	cur.close()	
-	return render_template("public/table.html",computers=rv,counter=counter)
+	return render_template("public/table.html",computers=rv)
+
+@app.route("/saved_image",methods=["GET"])
+def saved_image():
+	cur = mysql.connection.cursor()
+	cur.execute("select * from tb_arrdetect")
+	rv = cur.fetchall()
+	cur.close()
+	return render_template('public/recorded_image.html',computers=rv)
 
 @app.route("/simpan",methods=["GET","POST"])
 def simpan():
