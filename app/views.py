@@ -7,12 +7,12 @@ from datetime import datetime
 from werkzeug.utils import secure_filename
 from PIL import Image
 from flask_mysqldb import MySQL
-from app.static.Deployment import predict_bounding_box
+# from app.static.Deployment import predict_bounding_box
+from app.static.AF import inference
 
 
 
-
-app.config["ALLOWED_IMAGE_EXTENSIONS"] = ["JPEG", "JPG", "PNG", "GIF"]
+# app.config["ALLOWED_IMAGE_EXTENSIONS"] = ["JPEG", "JPG", "PNG", "GIF"]
 app.config["MAX_IMAGE_FILESIZE"] = 50 * 1024 * 1024
 
 app.config["SECRET_KEY"] = 'qfLQFMLpUvwRmtBg'
@@ -24,10 +24,98 @@ def index():
 
 	return render_template("public/index.html")
 
-@app.route("/upload-image", methods=["GET", "POST"])
+@app.route("/tableAF")
+def tableAF():
+	cur = mysql.connection.cursor()
+	cur.execute("SELECT * FROM tb_af")
+	rv = cur.fetchall()
+
+	cur.close()	
+	return render_template("public/table.html",computers=rv)
+
+@app.route("/table")
+def table():
+	cur = mysql.connection.cursor()
+	cur.execute("SELECT * FROM tb_arrdetect")
+	rv = cur.fetchall()
+
+	cur.close()	
+
+	return render_template("public/table.html",computers=rv)
+
+
+@app.route("/saved_image",methods=["GET"])
+def saved_image():
+	cur = mysql.connection.cursor()
+	cur.execute("select * from tb_arrdetect")
+	rv = cur.fetchall()
+	cur.close()
+	return render_template('public/recorded_image.html',computers=rv)
+
+@app.route("/simpan",methods=["GET","POST"])
+def simpan():
+	file = request.form['file']
+	status_detect = request.form['status_detect']
+	cur = mysql.connection.cursor()
+	cur.execute("INSERT INTO tb_arrdetect (file,status_detect) VALUES (%s,%s)",(file,status_detect))
+	mysql.connection.commit()
+	return redirect(url_for('table'))
+
+@app.route('/update', methods=["POST"])
+def update():
+	id_data = request.form['id']
+	nama = request.form['nama']
+	status_detect = request.form['status_detect']
+	cur = mysql.connection.cursor()
+	cur.execute("UPDATE tb_arrdetect SET file=%s,status_detect=%s WHERE id_detect=%s", (nama,status_detect,id_data))
+	mysql.connection.commit()
+	return redirect(url_for('table'))
+
+@app.route('/hapus/<string:id>', methods=["GET"])
+def hapus(id):
+	cur = mysql.connection.cursor()
+	cur.execute("DELETE FROM tb_arrdetect WHERE id_detect=%s", (id,))
+	cur.execute("update tb_arrdetect set id_detect=id_detect-1 where id_detect > %s",(id,))
+	cur.execute("ALTER TABLE tb_arrdetect AUTO_INCREMENT=1;")
+	mysql.connection.commit()
+	return redirect(url_for('table'))
+
+@app.route("/Atrial", methods=["GET","POST"])
+def atrial():
+	if request.method == "POST":
+
+		if request.files:
+
+			xml = request.files["xml"]
+			if xml.filename == "":
+
+				feedback = "No filename"
+				# print(feedback)
+				return render_template("public/Atrial.html",feedback=feedback)
+
+			if allowed_xml(xml.filename):
+				filename = secure_filename(xml.filename)
+				session['xml_name'] = filename
+				xml.save(os.path.join(app.config["XML_UP"], session.get('xml_name')))
+				saved_xml = str(app.config["XML_UP"]+"/"+session.get('xml_name'))
+				print(saved_xml)
+
+				hasil = inference.utama(saved_xml)
+				session['hasil'] = "Hasil tes nya adalah : "+hasil
+
+				print("hasil tes nya adalah ",hasil)
+
+				file = session.get('xml_name')
+				cur = mysql.connection.cursor()
+				cur.execute("INSERT INTO tb_AF (file,status_detect) VALUES (%s,%s)",(file,hasil))
+				mysql.connection.commit()
+
+				return redirect(request.url)
+
+	return render_template("/public/atrial.html",hasil=session.get('hasil'))
+
+# @app.route("/upload-image", methods=["GET", "POST"])
 def upload_image():
-	hists = os.listdir(app.config["IMAGE_UPLOADS"])
-	hists = ['/' + file for file in hists]
 
 	if request.method == "POST":
 
@@ -40,7 +128,7 @@ def upload_image():
 				feedback = "No filename"
 				# print(feedback)
 
-				return render_template("public/upload_image.html",hists=hists, feedback=feedback)
+				return render_template("public/upload_image.html", feedback=feedback)
 
 			if allowed_image(image.filename):
 
@@ -79,7 +167,7 @@ def upload_image():
 				return redirect(request.url)
 
 
-	return render_template("public/upload_image.html", hists=hists, saved_image=session.get('image_name'))
+	return render_template("public/upload_image.html", saved_image=session.get('image_name'))
 
 @app.route("/arrythmia")
 def arrythmia():
@@ -108,46 +196,17 @@ def allowed_image_filesize(filesize):
 		print(int(filesize))
 		return False
 
-@app.route("/table")
-def table():
-	cur = mysql.connection.cursor()
-	cur.execute("SELECT * FROM tb_arrdetect")
-	rv = cur.fetchall()
-	cur.close()	
-	return render_template("public/table.html",computers=rv)
+def allowed_xml(filename):
+	#kita hanya ingin berkas dengan titik(.) di namanya
+	if not "." in filename:
+		return False
 
-@app.route("/saved_image",methods=["GET"])
-def saved_image():
-	cur = mysql.connection.cursor()
-	cur.execute("select * from tb_arrdetect")
-	rv = cur.fetchall()
-	cur.close()
-	return render_template('public/recorded_image.html',computers=rv)
+	#pisahkan ekstensi dari nama berkas
+	ext = filename.rsplit(".", 1)[1]
+	print(ext)
 
-@app.route("/simpan",methods=["GET","POST"])
-def simpan():
-	file = request.form['file']
-	status_detect = request.form['status_detect']
-	cur = mysql.connection.cursor()
-	cur.execute("INSERT INTO tb_arrdetect (file,status_detect) VALUES (%s,%s)",(file,status_detect))
-	mysql.connection.commit()
-	return redirect(url_for('table'))
-
-@app.route('/update', methods=["POST"])
-def update():
-	id_data = request.form['id']
-	nama = request.form['nama']
-	status_detect = request.form['status_detect']
-	cur = mysql.connection.cursor()
-	cur.execute("UPDATE tb_arrdetect SET file=%s,status_detect=%s WHERE id_detect=%s", (nama,status_detect,id_data))
-	mysql.connection.commit()
-	return redirect(url_for('table'))
-
-@app.route('/hapus/<string:id>', methods=["GET"])
-def hapus(id):
-	cur = mysql.connection.cursor()
-	cur.execute("DELETE FROM tb_arrdetect WHERE id_detect=%s", (id,))
-	cur.execute("update tb_arrdetect set id_detect=id_detect-1 where id_detect > %s",(id,))
-	cur.execute("ALTER TABLE tb_arrdetect AUTO_INCREMENT=1;")
-	mysql.connection.commit()
-	return redirect(url_for('table'))
+	#periksa apakah ekstensi-nya ada di ALLOWED_IMAGE_EXTENSIONS
+	if ext.upper() in app.config["ALLOWED_XML_EXTENSIONS"]:
+		return True
+	else:
+		return False

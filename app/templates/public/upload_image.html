@@ -11,34 +11,57 @@
             <h1>Upload an image</h1>
             <hr>
 
-            <form action="/upload-image" method="post" enctype="multipart/form-data">  
+            <form action="/upload-image" method="post" enctype="multipart/form-data">
                 <div class="form-group">
                     <label>Select image</label>
                     <div class="custom-file">
-                        <input type="file" name="image" id="image" class="custom-file-input" accept="image/*" oninput="filesize(this);">
+                        <input type="file" name="image" id="image" class="custom-file-input" accept="image/*"
+                            oninput="filesize(this);">
                         <label for="image" class="custom-file-label">Select image...</label>
                     </div>
                 </div>
 
                 <button type="submit" class="btn btn-primary">Detect</button>
 
-                
+
             </form>
 
-            {% if saved_image %}
-            <img src="{{ url_for('static', filename='Deployment/Predicting/'+session.get('image_name')) }}" alt="{{session.get('image_name')}}" width="50%">
-            <hr>
-            <h4>Result</h4>
-            <img src="{{ url_for('static', filename='Deployment/results/'+session.get('image_name')) }}" alt="{{session.get('image_name')}}" width="50%">
-            <p>{{saved_image}}</p>
-            {% endif %}
-         
+
             {% if feedback %}
             <p class="text-danger float-right">{{feedback}}</p>
             {% endif %}
         </div>
     </div>
-    
+    {% if saved_image %}
+    <h4>Result</h4>
+    <div class="row">
+
+
+        <div class="card col-sm m-2">
+            <img src="{{ url_for('static', filename='Deployment/Predicting/'+session.get('image_name')) }}"
+                alt="{{session.get('image_name')}}" width="100%">
+            <div class="card-body">
+                <h5 class="card-title">{{session.get('image_name')}}</h5>
+                <a href="#" class="btn btn-primary">Go somewhere</a>
+            </div>
+        </div>
+        <div class="col-sm">
+            <p>--></p>
+        </div>
+        <div class="card col-sm m-2">
+            <img src="{{ url_for('static', filename='Deployment/results/'+saved_image) }}"
+                alt="{{session.get('image_name')}}" width="100%">
+            <div class="card-body">
+                <h5 class="card-title">{{session.get('image_name')}}</h5>
+                <a href="#" class="btn btn-primary">Go somewhere</a>
+            </div>
+        </div>
+        <hr>
+
+
+
+    </div>
+    {% endif %}
 </div>
 
 {% endblock %}
@@ -46,11 +69,9 @@
 {% block script %}
 
 <script>
-
-    function filesize(elem){
-      document.cookie = `filesize=${elem.files[0].size}`
+    function filesize(elem) {
+        document.cookie = `filesize=${elem.files[0].size}`
     }
-  
 </script>
 
 {% endblock %}
