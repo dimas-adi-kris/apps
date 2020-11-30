@@ -1,0 +1,110 @@
+{% extends "public/templates/public_template.html" %}
+
+{% block title %}Upload{% endblock %}
+
+{% block main %}
+
+<div class="container">
+    <div class="row">
+        <div class="col">
+
+            <h1>Upload a data</h1>
+            <hr>
+
+            <form action="/Atrial" method="post" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label>Select data</label>
+                    <div class="custom-file">
+                        <input type="file" name="xml" id="xml" class="custom-file-input" accept="text/xml*"
+                            oninput="filesize(this);">
+                        <label for="xml" class="custom-file-label">Select data...</label>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Detect</button>
+
+
+            </form>
+
+            {% if nama_file %}
+            <button type="button" id="" class="btn btn-success btn-xs btn-rinci" data-toggle="modal" data-target="#modal-rinci">Detail</button>
+            {% endif %}
+
+            {% if feedback %}
+            <p class="text-danger float-right">{{feedback}}</p>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% if nama_file %}
+<!-- Modal -->
+<div class="modal fade" id="modal-rinci" tabindex="-1" aria-labelledby="ModalLabel"
+	aria-hidden="true">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="ModalLabel">{{nama_file}}</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+                <div class="form-group">
+                    <img src="{{url_for('static', filename='AF/'+nama_file+'-bef.png')}}" class="img-fluid" alt="" id="data_pic_src">
+                </div>
+                <div class="form-group">
+                    <label for="">Status :</label>
+                    <label for="" id="status_af">{{hasil}}</label>
+                </div>
+                <div class="form-group justify-content-center">
+                    <label for="" id="which-img">Before</label>
+                </div>
+                <div>
+                    <button id="switcher" class="btn btn-success float-right">After</button>
+                </div>
+			</div>
+			<!-- Penutup Form -->
+		</div>
+		<div class="modal-footer">
+			<!-- <button id="summit-tambah" type="submit" class="btn btn-success">Tambah</button> -->
+		</div>
+	</div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block script %}
+
+<script>
+    function filesize(elem) {
+        document.cookie = `filesize=${elem.files[0].size}`
+    }
+    $(document).ready(function(){
+        $("#switcher").click(function(){
+            if($("#which-img").text() == "Before"){
+                var pic_src = $('#data_pic_src').attr("src");
+                // console.log(pic_src);
+                pic_src = pic_src.split("-");
+                pic_src[pic_src.length-1] = "aft.png"
+                pic_src = pic_src.join('-');
+                $('#data_pic_src').attr("src",pic_src);
+                $('#switcher').attr("class","btn btn-success float-left");
+                $("#switcher").text("Before");
+                $("#which-img").text("After");
+            }else if($("#which-img").text() == "After"){
+                var pic_src = $('#data_pic_src').attr("src");
+                // console.log(pic_src);
+                pic_src = pic_src.split("-");
+                pic_src[pic_src.length-1] = "bef.png"
+                pic_src = pic_src.join('-');
+                $('#data_pic_src').attr("src",pic_src);
+                $('#switcher').attr("class","btn btn-success float-right");
+                $("#switcher").text("After");
+                $("#which-img").text("Before");
+            }
+        });
+    });
+</script>
+
+{% endblock %}

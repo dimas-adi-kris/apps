@@ -8,7 +8,11 @@ from werkzeug.utils import secure_filename
 from PIL import Image
 from flask_mysqldb import MySQL
 # from app.static.Deployment import predict_bounding_box
+
+
 from app.static.AF import inference
+
+from MySQLdb import _exceptions
 
 
 
@@ -21,11 +25,12 @@ mysql = MySQL(app)
 @app.route("/", methods=["GET", "POST"])
 @app.route('/index', methods=["GET", "POST"])
 def index():
-
+	session.clear()
 	return render_template("public/index.html")
 
 @app.route("/tableAF")
 def tableAF():
+	session.clear()
 	cur = mysql.connection.cursor()
 	cur.execute("SELECT * FROM tb_af")
 	rv = cur.fetchall()
@@ -33,24 +38,29 @@ def tableAF():
 	cur.close()	
 	return render_template("public/table.html",computers=rv)
 
-@app.route("/table")
-def table():
+@app.route("/getTabel", methods=["GET","POST"])
+def getTabel():
 	cur = mysql.connection.cursor()
-	cur.execute("SELECT * FROM tb_arrdetect")
+	cur.execute("SELECT * FROM tb_af")
+
+	row_headers=[x[0] for x in cur.description] #this will extract row headers
+
 	rv = cur.fetchall()
 
 	cur.close()	
+	json_data=[]
+	for result in rv:
+		json_data.append(dict(zip(row_headers,result)))
+	return jsonify(json_data)
 
-	return render_template("public/table.html",computers=rv)
 
-
-@app.route("/saved_image",methods=["GET"])
-def saved_image():
-	cur = mysql.connection.cursor()
-	cur.execute("select * from tb_arrdetect")
-	rv = cur.fetchall()
-	cur.close()
-	return render_template('public/recorded_image.html',computers=rv)
+# @app.route("/saved_image",methods=["GET"])
+# def saved_image():
+# 	cur = mysql.connection.cursor()
+# 	cur.execute("select * from tb_arrdetect")
+# 	rv = cur.fetchall()
+# 	cur.close()
+# 	return render_template('public/recorded_image.html',computers=rv)
 
 @app.route("/simpan",methods=["GET","POST"])
 def simpan():
@@ -80,94 +90,98 @@ def hapus(id):
 	mysql.connection.commit()
 	return redirect(url_for('table'))
 
+@app.route('/detail/<string:ids>')
+def detail(ids):
+	cur = mysql.connection.cursor()
+	cur.execute("SELECT * FROM tb_af WHERE id=%s", (ids,))
+	rv = cur.fetchall()
+	print(rv)
+
+	cur.close()	
+	return render_template("public/detail.html",computers=rv)
+
 @app.route("/Atrial", methods=["GET","POST"])
 def atrial():
+	
 	if request.method == "POST":
+		xml = request.files["xml"]
+		if xml.filename == "":
+			feedback = "No filename"
+			return render_template("public/Atrial.html",feedback=feedback)
 
-		if request.files:
+		if allowed_xml(xml.filename):
+			filename = secure_filename(xml.filename)
+			session['xml_name'] = filename
+			xml.save(os.path.join(app.config["XML_UP"], session.get('xml_name')))
+			saved_xml = str(app.config["XML_UP"]+"/"+session.get('xml_name'))
+			print(saved_xml)
+			hasil,file = inference.utama(saved_xml)
+			session['hasil'] = hasil
+			session['file'] = file
+			print("hasil tes nya adalah ",hasil)
+			cur = mysql.connection.cursor()
+			cur.execute("INSERT INTO tb_AF (file,status_detect) VALUES (%s,%s)",(file,hasil))
+			mysql.connection.commit()
 
-			xml = request.files["xml"]
-			if xml.filename == "":
+			return redirect(request.url)
 
-				feedback = "No filename"
-				# print(feedback)
-				return render_template("public/Atrial.html",feedback=feedback)
+	return render_template("/public/atrial.html",hasil=session.get('hasil'),nama_file=session.get('file'))
 
-			if allowed_xml(xml.filename):
-				filename = secure_filename(xml.filename)
-				session['xml_name'] = filename
-				xml.save(os.path.join(app.config["XML_UP"], session.get('xml_name')))
-				saved_xml = str(app.config["XML_UP"]+"/"+session.get('xml_name'))
-				print(saved_xml)
+@app.route('/getDataByID',methods=["GET","POST"])
+def get():
+	# if request.method == "POST":
+	data_id = request.form['data_id']
+	cur = mysql.connection.cursor()
+	cur.execute("SELECT * FROM tb_af WHERE id=%s", (data_id))
+	row_headers=[x[0] for x in cur.description] #this will extract row headers
 
-				hasil = inference.utama(saved_xml)
-				session['hasil'] = "Hasil tes nya adalah : "+hasil
+	rv = cur.fetchall()
+	cur.close
 
-				print("hasil tes nya adalah ",hasil)
-
-				file = session.get('xml_name')
-				cur = mysql.connection.cursor()
-				cur.execute("INSERT INTO tb_AF (file,status_detect) VALUES (%s,%s)",(file,hasil))
-				mysql.connection.commit()
-
-				return redirect(request.url)
-
-	return render_template("/public/atrial.html",hasil=session.get('hasil'))
+	json_data=[]
+	for result in rv:
+		json_data.append(dict(zip(row_headers,result)))
+	return jsonify(json_data[0])
 
 # @app.route("/upload-image", methods=["GET", "POST"])
-def upload_image():
+# def upload_image():
 
-	if request.method == "POST":
+# 	if request.method == "POST":
+# 		if request.files:
+# 			image = request.files["image"]
+# 			if image.filename == "":
+# 				feedback = "No filename"
+# 				# print(feedback)
+# 				return render_template("public/upload_image.html", feedback=feedback)
 
-		if request.files:
+# 			if allowed_image(image.filename):
+# 				if "filesize" in request.cookies:
+# 					if not allowed_image_filesize(request.cookies["filesize"]):
+# 						print("Filesize exceeded maximum limit")
+# 						return redirect(request.url)
 
-			image = request.files["image"]
-
-			if image.filename == "":
-
-				feedback = "No filename"
-				# print(feedback)
-
-				return render_template("public/upload_image.html", feedback=feedback)
-
-			if allowed_image(image.filename):
-
-				if "filesize" in request.cookies:
-					if not allowed_image_filesize(request.cookies["filesize"]):
-						print("Filesize exceeded maximum limit")
-						return redirect(request.url)
-
-				filename = secure_filename(image.filename)
-				session['image_name'] = filename
-				# session['image_name_path']
-				image.save(os.path.join(app.config["IMAGE_UPLOADS"], session.get('image_name')))
-
-				print("image saved with name", session.get('image_name'))
-				
-
-
-				saved_img = app.config["IMAGE_UPLOADS"] + "/" + session.get('image_name')
-				str_saved_img = str(saved_img)
-				print(str_saved_img)
-
-				predict_bounding_box.predict(str_saved_img)
-				# print(str_saved_img)
-
-				# simpen ke database
-				file = session.get('image_name')
-				status_detect = "0"
-				cur = mysql.connection.cursor()
-				cur.execute("INSERT INTO tb_arrdetect (file,status_detect) VALUES (%s,%s)",(file,status_detect))
-				mysql.connection.commit()
-
-				return redirect(request.url)
+# 				filename = secure_filename(image.filename)
+# 				session['image_name'] = filename
+# 				# session['image_name_path']
+# 				image.save(os.path.join(app.config["IMAGE_UPLOADS"], session.get('image_name')))
+# 				print("image saved with name", session.get('image_name'))
+# 				saved_img = app.config["IMAGE_UPLOADS"] + "/" + session.get('image_name')
+# 				str_saved_img = str(saved_img)
+# 				print(str_saved_img)
+# 				predict_bounding_box.predict(str_saved_img)
+# 				# print(str_saved_img)
+# 				# simpen ke database
+# 				file = session.get('image_name')
+# 				status_detect = "0"
+# 				cur = mysql.connection.cursor()
+# 				cur.execute("INSERT INTO tb_arrdetect (file,status_detect) VALUES (%s,%s)",(file,status_detect))
+# 				mysql.connection.commit()
+# 				return redirect(request.url)
 			
-			else:
-				print("That file extension is not allowed")
-				return redirect(request.url)
-
-
-	return render_template("public/upload_image.html", saved_image=session.get('image_name'))
+# 			else:
+# 				print("That file extension is not allowed")
+# 				return redirect(request.url)
+# 	return render_template("public/upload_image.html", saved_image=session.get('image_name'))
 
 @app.route("/arrythmia")
 def arrythmia():
@@ -210,3 +224,14 @@ def allowed_xml(filename):
 		return True
 	else:
 		return False
+
+@app.route("/table")
+def table():
+	cur = mysql.connection.cursor()
+	cur.execute("SELECT * FROM tb_arrdetect")
+	rv = cur.fetchall()
+
+	cur.close()	
+
+	return render_template("public/table.html",computers=rv)
+

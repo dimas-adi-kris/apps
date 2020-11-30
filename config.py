@@ -14,7 +14,7 @@ class ProductionConfig(Config):
     IMAGE_UPLOADS = "./app/static/Deployment/Predicting/"
     ALLOWED_IMAGE_EXTENSIONS = ["JPEG", "JPG", "PNG", "GIF"]
 
-    ALLOWED_XML_EXTENSIONS = ["XML"]
+    ALLOWED_XML_EXTENSIONS = ["XML","MAT"]
 
     XML_UP = "./app/static/AF"
 

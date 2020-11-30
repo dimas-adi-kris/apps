@@ -15,6 +15,12 @@ from statsmodels.robust import mad
 import sys
 import pywt
 
+from keras.backend import clear_session
+
+import matplotlib.pyplot as plt
+from datetime import datetime
+timenow = datetime.now().strftime("%d%m%Y-%H%M%S")
+
 def denoising(feature):
     levels = 8            
     a = feature
@@ -41,9 +47,12 @@ def denoising(feature):
     return new_signal
 
 def utama(filename):
+    global timenow
     path_data = filename
-    path_model = "models/AF/Best Model 3 Classes.h5"
+    path_model = "Best Model 3 Classes.h5"
     ext = path_data.split(".")[-1]
+    namefile = path_data.split('/')[4].split('.')[0]
+    print(filename,ext,namefile)
 
     if ext == 'xml':
         with open(path_data) as fopen:
@@ -52,22 +61,55 @@ def utama(filename):
         raw = data['CardioXP']['StudyInfo']['WaveData'][1]['Data']
         signal = raw.split(' ')
         signal = np.array(signal, dtype = int)
+        
+        plt.figure(figsize=(15,10))
+        plt.plot(range(2700),signal[:2700])
+        saving_file_bef = './app/static/AF/'+namefile+'-'+timenow+'-bef.png'
+        plt.savefig(saving_file_bef)
+        
         signal = normalize_bound(signal, lb=0, ub=1)
         signal = denoising(signal)
         signal = signal[0:2700]
+        
+        plt.figure(figsize=(15,10))
+        plt.plot(range(2700),signal[:2700])
+        saving_file_aft = './app/static/AF/'+namefile+'-'+timenow+'-aft.png'
+        plt.savefig(saving_file_aft)
     elif ext == 'dat':
         record = wfdb.rdrecord(path_data)
         record_dict = record.__dict__    
         p_signal = record_dict['p_signal'][:,0]
+        
+        plt.figure(figsize=(15,10))
+        plt.plot(range(2700),p_signal[:2700])
+        saving_file_bef = './app/static/AF/'+namefile+'-'+timenow+'-bef.png'
+        plt.savefig(saving_file_bef)
+        
         p_signal = normalize_bound(p_signal, lb=0, ub=1)
         p_signal = denoising(p_signal)
         signal = p_signal[0:2700]
+        
+        plt.figure(figsize=(15,10))
+        plt.plot(range(2700),signal[:2700])
+        saving_file_aft = './app/static/AF/'+namefile+'-'+timenow+'-aft.png'
+        plt.savefig(saving_file_aft)
     elif ext == 'mat':
         data = scipy.io.loadmat(path_data)
         sampels = data['val'][0]
+        
+        plt.figure(figsize=(15,10))
+        plt.plot(range(2700),sampels[:2700])
+        saving_file_bef = './app/static/AF/'+namefile+'-'+timenow+'-bef.png'
+        plt.savefig(saving_file_bef)
+        
         sampels = normalize_bound(sampels, lb = 0, ub = 1)
         sampels = denoising(sampels)
         signal = sampels[0:2700]
+        
+        plt.figure(figsize=(15,10))
+        plt.plot(range(2700),signal[:2700])
+        saving_file_aft = './app/static/AF/'+namefile+'-'+timenow+'-aft.png'
+        plt.savefig(saving_file_aft)
     else:    
         sys.exit("Not A Valid Data")
 
@@ -79,11 +121,15 @@ def utama(filename):
     predicted_class = model.predict_classes(signal)[0]
 
     if predicted_class == 0:
+        clear_session()
         print("Normal")
-        return 'Normal'
+        return 'Normal',namefile+'-'+timenow
     elif predicted_class == 1:
+        clear_session()
         print("Atrial Fibrilation")
-        return 'Atrial Fibrilation'
+        return 'Atrial Fibrilation',namefile+'-'+timenow
     else:
+        clear_session()
         print("Non AF")
-        return 'Non AF'
+        return 'Non AF',namefile+'-'+timenow
+

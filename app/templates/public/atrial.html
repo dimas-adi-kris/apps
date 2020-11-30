@@ -2,32 +2,152 @@
 
 {% block title %}Upload{% endblock %}
 
+{% block styling %}
+<style>
+    .file-upload {
+  background-color: #ffffff;
+  width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.file-upload-btn {
+  width: 100%;
+  margin: 0;
+  color: #fff;
+  background: #1FB264;
+  border: none;
+  padding: 10px;
+  border-radius: 4px;
+  border-bottom: 4px solid #15824B;
+  transition: all .2s ease;
+  outline: none;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.file-upload-btn:hover {
+  background: #1AA059;
+  color: #ffffff;
+  transition: all .2s ease;
+  cursor: pointer;
+}
+
+.file-upload-btn:active {
+  border: 0;
+  transition: all .2s ease;
+}
+
+.file-upload-content {
+  display: none;
+  text-align: center;
+}
+
+.file-upload-input {
+  position: absolute;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  outline: none;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.image-upload-wrap {
+  margin-top: 20px;
+  border: 4px dashed #1FB264;
+  position: relative;
+}
+
+.image-dropping,
+.image-upload-wrap:hover {
+  background-color: #1FB264;
+  border: 4px dashed #ffffff;
+}
+
+.image-title-wrap {
+  padding: 0 15px 15px 15px;
+  color: #222;
+}
+
+.drag-text {
+  text-align: center;
+}
+
+.drag-text h3 {
+  font-weight: 100;
+  text-transform: uppercase;
+  color: #15824B;
+  padding: 60px 0;
+}
+
+.file-upload-image {
+  max-height: 200px;
+  max-width: 200px;
+  margin: auto;
+  padding: 20px;
+}
+
+.remove-image {
+  width: 200px;
+  margin: 0;
+  color: #fff;
+  background: #cd4535;
+  border: none;
+  padding: 10px;
+  border-radius: 4px;
+  border-bottom: 4px solid #b02818;
+  transition: all .2s ease;
+  outline: none;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.remove-image:hover {
+  background: #c13b2a;
+  color: #ffffff;
+  transition: all .2s ease;
+  cursor: pointer;
+}
+
+.remove-image:active {
+  border: 0;
+  transition: all .2s ease;
+}
+</style>
+{% endblock %}
+
 {% block main %}
 
-<div class="container">
-    <div class="row">
-        <div class="col">
+<div class="container ">
+    <div class="row  justify-content-center align-items-center">
+        <div class="col-12 text-center">
 
-            <h1>Upload an image</h1>
-            <hr>
-
-            <form action="/Atrial" method="post" enctype="multipart/form-data">
-                <div class="form-group">
-                    <label>Select image</label>
-                    <div class="custom-file">
-                        <input type="file" name="xml" id="xml" class="custom-file-input" accept="text/xml*"
-                            oninput="filesize(this);">
-                        <label for="xml" class="custom-file-label">Select image...</label>
-                    </div>
+            <form action="/Atrial" method="post" enctype="multipart/form-data" class="file-upload">
+              
+                <div class="image-upload-wrap">
+                  <input class="file-upload-input" name="xml" id="xml" type='file' onchange="readURL(this);" oninput="filesize(this);" accept="text/xml*" />
+                  <div class="drag-text">
+                    <h3>Drag and drop a file 'or' click to add file</h3>
+                  </div>
                 </div>
+                <div class="file-upload-content">
+                  <div class="image-title-wrap">
+                    <button type="button" onclick="removeUpload()" class="remove-image">Remove <span class="image-title">Uploaded Image</span></button>
+                    <button type="submit" class="remove-image">Detect</button>
+                  </div>
+                </div>
+              </form>
 
-                <button type="submit" class="btn btn-primary">Detect</button>
+            {% if nama_file %}
+            <div>
 
-
-            </form>
-
-            {% if hasil %}
-            <p style="size: 20px;">{{ hasil }}</p>
+                <h1>
+                    Result :
+                </h1>
+                <button type="button" id="" class="btn btn-success btn-xs btn-rinci" data-toggle="modal" data-target="#modal-rinci">Detail</button>
+            </div>
             {% endif %}
 
             {% if feedback %}
@@ -37,7 +157,41 @@
     </div>
 
 </div>
-
+{% if nama_file %}
+<!-- Modal -->
+<div class="modal fade" id="modal-rinci" tabindex="-1" aria-labelledby="ModalLabel"
+	aria-hidden="true">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="ModalLabel">{{nama_file}}</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+                <div class="form-group">
+                    <img src="{{url_for('static', filename='AF/'+nama_file+'-bef.png')}}" class="img-fluid" alt="" id="data_pic_src">
+                </div>
+                <div class="form-group">
+                    <label for="">Status :</label>
+                    <label for="" id="status_af">{{hasil}}</label>
+                </div>
+                <div class="form-group justify-content-center">
+                    <label for="" id="which-img">Before</label>
+                </div>
+                <div>
+                    <button id="switcher" class="btn btn-success float-right">After</button>
+                </div>
+			</div>
+			<!-- Penutup Form -->
+		</div>
+		<div class="modal-footer">
+			<!-- <button id="summit-tambah" type="submit" class="btn btn-success">Tambah</button> -->
+		</div>
+	</div>
+</div>
+{% endif %}
 {% endblock %}
 
 {% block script %}
@@ -46,6 +200,63 @@
     function filesize(elem) {
         document.cookie = `filesize=${elem.files[0].size}`
     }
+    $(document).ready(function(){
+        $("#switcher").click(function(){
+            if($("#which-img").text() == "Before"){
+                var pic_src = $('#data_pic_src').attr("src");
+                // console.log(pic_src);
+                pic_src = pic_src.split("-");
+                pic_src[pic_src.length-1] = "aft.png"
+                pic_src = pic_src.join('-');
+                $('#data_pic_src').attr("src",pic_src);
+                $('#switcher').attr("class","btn btn-success float-left");
+                $("#switcher").text("Before");
+                $("#which-img").text("After");
+            }else if($("#which-img").text() == "After"){
+                var pic_src = $('#data_pic_src').attr("src");
+                // console.log(pic_src);
+                pic_src = pic_src.split("-");
+                pic_src[pic_src.length-1] = "bef.png"
+                pic_src = pic_src.join('-');
+                $('#data_pic_src').attr("src",pic_src);
+                $('#switcher').attr("class","btn btn-success float-right");
+                $("#switcher").text("After");
+                $("#which-img").text("Before");
+            }
+        });
+    });
+    function readURL(input) {
+  if (input.files && input.files[0]) {
+
+    var reader = new FileReader();
+
+    reader.onload = function(e) {
+      $('.image-upload-wrap').hide();
+
+      $('.file-upload-image').attr('src', e.target.result);
+      $('.file-upload-content').show();
+
+      $('.image-title').html(input.files[0].name);
+    };
+
+    reader.readAsDataURL(input.files[0]);
+
+  } else {
+    removeUpload();
+  }
+}
+
+function removeUpload() {
+  $('.file-upload-input').replaceWith($('.file-upload-input').clone());
+  $('.file-upload-content').hide();
+  $('.image-upload-wrap').show();
+}
+$('.image-upload-wrap').bind('dragover', function () {
+		$('.image-upload-wrap').addClass('image-dropping');
+	});
+	$('.image-upload-wrap').bind('dragleave', function () {
+		$('.image-upload-wrap').removeClass('image-dropping');
+});
 </script>
 
 {% endblock %}
