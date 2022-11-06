@@ -52,7 +52,6 @@ def utama(filename):
     path_model = "Best Model 3 Classes.h5"
     ext = path_data.split(".")[-1]
     namefile = path_data.split('/')[4].split('.')[0]
-    print(filename,ext,namefile)
 
     if ext == 'xml':
         with open(path_data) as fopen:

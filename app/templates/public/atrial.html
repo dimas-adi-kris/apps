@@ -120,8 +120,8 @@
 
 {% block main %}
 
-<div class="container ">
-    <div class="row  justify-content-center align-items-center">
+<div class="container">
+    <div class="row justify-content-center align-items-center">
         <div class="col-12 text-center">
 
             <form action="/Atrial" method="post" enctype="multipart/form-data" class="file-upload">
@@ -138,17 +138,13 @@
                     <button type="submit" class="remove-image">Detect</button>
                   </div>
                 </div>
+                {% if nama_file %}
+                <div>
+                    <button type="button" id="" class="btn btn-success btn-lg btn-rinci" data-toggle="modal" data-target="#modal-rinci">Result</button>
+                </div>
+                {% endif %}
               </form>
 
-            {% if nama_file %}
-            <div>
-
-                <h1>
-                    Result :
-                </h1>
-                <button type="button" id="" class="btn btn-success btn-xs btn-rinci" data-toggle="modal" data-target="#modal-rinci">Detail</button>
-            </div>
-            {% endif %}
 
             {% if feedback %}
             <p class="text-danger float-right">{{feedback}}</p>

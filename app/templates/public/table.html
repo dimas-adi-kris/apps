@@ -6,15 +6,14 @@
 
 <div class="container">
     <div class="starter-template">
-        <h1>Tampilkan Data</h1>
-        <button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#myModal">Tambah Data</button>
-        <table class="table table-striped" id="tabel-status">
+        <h1 class="m-3" style="color: white;">Data History</h1>
+        <table class="table table-dark table-striped m-3" id="tabel-status">
             <thead>
                 <tr>
                     <td>No</td>
-                    <td>Nama file</td>
-                    <td>Status_detect</td>
-                    <td>Aksi</td>
+                    <td>File Name</td>
+                    <td>Result</td>
+                    <td>Action</td>
                 </tr>
             </thead>
             <tbody>
@@ -95,7 +94,7 @@
 	<div class="modal-dialog modal-lg">
 		<div class="modal-content">
 			<div class="modal-header">
-				<h5 class="modal-title" id="ModalLabel">Tambah User</h5>
+				<h5 class="modal-title" id="ModalLabel">Detail</h5>
 				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
 					<span aria-hidden="true">&times;</span>
 				</button>
@@ -140,7 +139,7 @@
         // $('#example').DataTable();
         var tabelStatus = $('#tabel-status').DataTable({
 		"paging": true,
-		"lengthChange": true,
+		"lengthChange": false,
 		"searching": false,
 		"ordering": true,
 		"info": true,

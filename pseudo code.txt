@@ -1,0 +1,19 @@
+This program do upload signal data and process using atrial fibrilation
+
+main function
+{
+    if request method is 'POST'
+        then:
+        take file from request method
+        if file don't have name
+            then refresh page
+        
+        if file extension format is 'mat' or 'xml'
+            then:
+            secure file
+            save file on server
+            process file using an atrial fibrillation program
+            keep file name and result
+            return to the page with the file name and result
+    load page
+}
